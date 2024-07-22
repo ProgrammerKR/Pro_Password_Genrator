@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f0f0f5;
+            margin: 0;
+        }
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 {
+            margin-bottom: 20px;
+            font-size: 24px;
+            color: #333;
+        }
+        label {
+            font-size: 16px;
+            color: #555;
+        }
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .checkbox-group {
+            text-align: left;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .checkbox-group label {
+            font-size: 14px;
+            color: #555;
+            display: block;
+            margin: 5px 0;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .password {
+            margin-top: 20px;
+            word-break: break-all;
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 16px;
+            color: #333;
+        }
+        .password-strength {
+            margin-top: 10px;
+            font-size: 14px;
+        }
+        .copy-button {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .copy-button:hover {
+            background-color: #218838;
+        }
+        @media (max-width: 600px) {
+            .container {
+                padding: 15px;
+            }
+            input[type="number"], button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Password Generator</h1>
+        <label for="length">Password Length:</label>
+        <input type="number" id="length" min="8" max="128" value="12">
+
+        <div class="checkbox-group">
+            <label><input type="checkbox" id="includeLowercase" checked> Include Lowercase</label>
+            <label><input type="checkbox" id="includeUppercase" checked> Include Uppercase</label>
+            <label><input type="checkbox" id="includeNumbers" checked> Include Numbers</label>
+            <label><input type="checkbox" id="includeSymbols" checked> Include Symbols</label>
+        </div>
+
+        <button onclick="generatePassword()">Generate Password</button>
+        <div class="password" id="passwordOutput">Your generated password will appear here.</div>
+        <div class="password-strength" id="passwordStrength">Strength: <span id="strengthValue">Unknown</span></div>
+        <button class="copy-button" onclick="copyToClipboard()">Copy to Clipboard</button>
+    </div>
+
+    <script>
+        function generatePassword() {
+            const length = document.getElementById('length').value;
+            const includeLowercase = document.getElementById('includeLowercase').checked;
+            const includeUppercase = document.getElementById('includeUppercase').checked;
+            const includeNumbers = document.getElementById('includeNumbers').checked;
+            const includeSymbols = document.getElementById('includeSymbols').checked;
+
+            const lowerCaseChars = 'abcdefghijklmnopqrstuvwxyz';
+            const upperCaseChars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+            const numberChars = '0123456789';
+            const symbolChars = '!@#$%^&*~_+-|;:<>?';
+            
+            let charSet = '';
+            if (includeLowercase) charSet += lowerCaseChars;
+            if (includeUppercase) charSet += upperCaseChars;
+            if (includeNumbers) charSet += numberChars;
+            if (includeSymbols) charSet += symbolChars;
+
+            if (charSet.length === 0) {
+                document.getElementById('passwordOutput').textContent = 'Please select at least one character set.';
+                document.getElementById('passwordStrength').style.display = 'none';
+                return;
+            }
+
+            let password = '';
+            for (let i = 0; i < length; i++) {
+                const randomIndex = Math.floor(Math.random() * charSet.length);
+                password += charSet[randomIndex];
+            }
+
+            document.getElementById('passwordOutput').textContent = password;
+            evaluateStrength(password);
+        }
+
+        function evaluateStrength(password) {
+            let strength = 'Weak';
+            const lengthCriteria = password.length >= 12;
+            const hasLower = /[a-z]/.test(password);
+            const hasUpper = /[A-Z]/.test(password);
+            const hasNumber = /\d/.test(password);
+            const hasSymbol = /[!@#$%^&*()_+[\]{}|;:,.<>?]/.test(password);
+
+            if (lengthCriteria && hasLower && hasUpper && hasNumber && hasSymbol) {
+                strength = 'Strong';
+            } else if ((lengthCriteria && hasLower && hasUpper) || (lengthCriteria && hasLower && hasNumber) || (lengthCriteria && hasUpper && hasNumber)) {
+                strength = 'Medium';
+            }
+
+            document.getElementById('strengthValue').textContent = strength;
+        }
+
+        function copyToClipboard() {
+            const passwordText = document.getElementById('passwordOutput').textContent;
+            if (passwordText && passwordText !== 'Your generated password will appear here.') {
+                navigator.clipboard.writeText(passwordText).then(() => {
+                    alert('Password copied to clipboard!');
+                }).catch(err => {
+                    console.error('Failed to copy password: ', err);
+                });
+            } else {
+                alert('No password to copy.');
+            }
+        }
+    </script>
+</body>
+</html>
